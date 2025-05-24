@@ -1,0 +1,138 @@
+\section{Formal Specification of Policies and the RV Monitor}
+This section briefly discusses timed automaton~\cite{alur1994theory}, specification of an ECG policy as TA, and explains the basics of a runtime verification monitor.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\vspace{-1.5em}
+\subsection{Timed Automata (TA)}
+%\vspace{-0.5em} 
+\begin{definition}[Timed automata]
+	\label{def:ta}
+	A {\em timed automaton} $\calA=(S, s_0, C, \Sigma,$ $\Delta, F)$ is a tuple, where:
+	$S$ is a finite set of {\em locations}, $s_0 \in S$ is the \emph{initial location}, $C$ is a finite set of \emph{clocks}, $\Sigma$ is a finite set of {\em events}, $\Delta\subseteq S \times \mathcal{G}(C), \Sigma \times 2^C \times S$ is the {\em transition relation}, $F\subseteq S$ is a set of \emph{accepting locations}.	
+\end{definition}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%
+\ignore{\vspace{-1.25em}
+\begin{figure}[hbt!]
+	\centering
+	{
+		\includegraphics[width=\linewidth]{fig/Policy_phi_1_c_true_c_false_page.jpg}
+		\vspace{-1.5em}
+		\caption{Policy $\varphi_{PAT1}$ represented by a timed automaton}
+		\label{fig:exampleTA}
+	}
+	\vspace{-0.75em}
+\end{figure}
+\vspace{0.1em}}
+
+\begin{figure}
+	\begin{adjustbox}{width=\linewidth}
+	
+	\begin{tikzpicture}[->,shorten >=1pt,auto,node distance=2.5cm,semithick,initial where=left]
+		
+		\tikzstyle{every node}=[font=\small]
+		
+		\tikzstyle{good state}=[circle,thick,draw=blue!75,fill=blue!20,minimum size=5mm]
+		\tikzstyle{bad state}=[circle,thick,draw=red!75,fill=red!20,minimum size=3mm,accepting]
+		\tikzstyle{dead state}=[rectangle,thick,draw=red!75,fill=red!20,minimum size=5mm]
+		
+		\node[initial,good state] (N0) {$S_0$};
+		\node[good state]         (N1) [right=4.5 of N0] {$S_1$}; %[right of=N0] {$l_1$};
+		\node[bad state]        (H) [below=0.75 of N1] {$S_2$};
+		\node[bad state]        (H1) [below=0.75 of N0] {$S_3$};
+		
+		\path (N0) edge  [bend left=20] node [align=center]  {$ P_{onset}, x:=0 $ }( N1)
+		
+		%edge [loop above] node [align=center] {$ B_{G_1} $: $ b_1=1 $\\$C_{G_1}$: $ c_1=1 $}(N0)  
+		edge [loop above] node [align=center] {$ \Sigma \setminus P_{onset} $}(N0)  
+		%(H)edge [bend left=20] node [align=center] {$ R, x:=0 $ }(N1)          
+		(N1)edge [bend left=0] node [align=center, pos=0.5, below] {$ S_{offset}, x\leq200 $ and $ x\geq120 $} (N0)
+		(H1)edge node [align=center] {$ S_{offset}, x\leq200 $\\ and $ x\geq120 $} (N0)
+		%(N1) edge  [loop right] node {$ A_{G_1} $} (N1)
+		(N1)edge node [align=center] {$ S_{offset}, x>200 $  \\or $ x<120 $} (H)
+		edge [loop above] node [align=center] {$ \Sigma \setminus S_{offset} $}(N1)
+		%edge [loop above] node [align=center] {$ \Sigma \setminus on $}(H1)
+		(H) edge [loop right] node {$ \Sigma \setminus P_{onset} $} (H)
+		(H) edge  [bend left=20] node [align=center]  {$ P_{onset}, x:=0 $ }( H1)
+		(H1)edge  [bend left=0] node [align=center, pos=0.5, above] {$ S_{offset}, x>200 $  or $ x<120 $} (H)
+		edge [loop left] node [align=center] {$ \Sigma \setminus S_{offset} $}(H1);
+		
+	\end{tikzpicture}
+		%content...
+	\end{adjustbox}
+	\caption{\red{Policy $\varphi_{ECG1}$ specified as TA.}}
+	%\caption {figure} {VDTA specifying the constraint: ``\textit{Peer A can undertake a research project only after it has been approved by peer \{B, C\}}".}
+	\label{fig:vdta}
+\end{figure}
+
+%\begin{example}
+	\begin{example}[Timed automaton]
+		%Let us consider the property $P_3$ discussed in Section \ref{sec:pacemaker}. The TA in Figure \ref{fig:policy1} represents policy $P_{ECG1}$ (i.e; The PR interval in ECG should be in the range  120-200 ms.). In the TA in Figure \ref{fig:policy1}, the set of locations is $L=\{s_0, s_1, s_2 \}$, where $s_0$ is the initial location, and $\Sigma$ = $\{ \mathit{P_{onset}}$, $\mathit{P_{offset}}$, $\mathit{QRS_{onset}}$, $\mathit{R}$, $\mathit{QRS_{offset}}$, $\mathit{T_{end}}  \}$ is the set of events. The set of real-valued clocks is $X = \{x\}$. Transitions occur between locations depending on events.  On the transitions, there are guards with constraints on clock values such as $x > 200$,  and resets of clocks ($x:=0$). When the first event $\mathit{P_{Onset}}$ occurs, the TA moves to $s_1$ from $s_0$, and the clock $x$ is reset to 0. When in location  $s_1$, if the event $\mathit{Q}$ occurs and if $  120 \leq  x \leq 200 $, then the TA remains in location $s_1$, and resets the value of clock $x$ to 0, otherwise, it moves to location $s_2$. The location $s_2$  (non-accepting) should never be reached for the policy to be satisfied over runs. 
+		%
+	\red{	Consider the policy $\varphi_{ECG1}$ mentioned in Section \ref{sec:ecg}: "The PR interval in ECG should be in the range 120-200 ms". The TA representing the policy is shown in Figure \ref{fig:policy1} where the set of locations in the TA is $S=\{s_0, s_1, s_2, s_3 \}$, with $s_0$ is the initial location, and the set of events is $\Sigma$ = $\{ \mathit{P_{onset}}$, $\mathit{P_{offset}}$, $\mathit{QRS_{onset}}$, $\mathit{R}$, $\mathit{QRS_{offset}}$, $\mathit{T_{end}} \}$. Here, there is a single clock $x$ ($C = \{x\}$ is the set of real-valued clocks) to measure the elapsed time between events. Depending on the events, transitions take place between places satisfying guards. In the TA, the guard $x$ $\geq$ 200, and clock resets ($x:=0$), are present on transitions. The clock $x$ is set to zero and the TA is moved to $s_1$ when the first event $\mathit{P_{offset}}$ takes place. If the event $\mathit{QRS_{offset}}$ occurs while the TA is in location $s_1$ and if the guard on the clock $x$ ($ 120 \leq x \leq 200 $) is satisfied, it stays in location $s_1$ and resets the value of clock $x$ to 0, otherwise it moves to the location $s_2$. The location $s_2$ (non-accepting) should never be reached to satisfy the policy over the runs. When in $s_2$, a $\mathit{P_{offset}}$ event triggers a transition to $s_3$ and resets $x$; if $\mathit{P_{offset}}$ does not occur, the TA remains in $s_2$. Then, upon a $\mathit{P_{offset}}$ event in $s_3$, if 120 $\leq$ x $\leq$ 200 holds, the TA returns to $s_0$; otherwise it transitions to $s_2$.}
+	\end{example}
+	The trace/timed word ($\sigma$) processed by the TA is a sequence of events along with time, for example, $\sigma=(e_1,t_1)\cdot(e_2, t_2)\cdots(e_n, t_n)$, where $e_i$ is an event and $t_i$ is the time of occurrence of the event. {Given a finite alphabet $\Sigma$, the set of timed words over $\Sigma$ is denoted by $\tw(\Sigma)$.}
+	
+%\end{example}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\vspace{-1.5em}
+\subsection{Runtime verification (RV) monitor}
+%\vspace{-0.25em}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{definition}
+	\label{def:rv:mon}
+	Let $\varphi$ be a policy specified as TA $\calA_\varphi$. The RV monitor is a function $M_{\varphi}: \tw(\Sigma) \rightarrow \D$, where $\D= \{c\_True, c\_False\}$. Formally,
+	\ignore{Consider a monitoring policy $\varphi\subseteq\tw(\Sigma)$ is formalized as a timed automata  $\calA_\varphi$, then the verification monitor synthesized from $\calA_\varphi$ can be represented as a function $M_{\varphi}: \tw(\Sigma) \rightarrow \D$, where $\D= \{c\_True, c\_False\}$. The RV monitor is defined as follows considering $\sigma \in \tw(\Sigma)$ as the current observation: }
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\vspace{-0.5em}
+	\[
+	\begin{array}{lll}
+		M_{\varphi}(\sigma) & =
+		\begin{cases}
+			c\_True & \mbox{if}\ \ \sigma\in\varphi \\%\wedge \exists \sigma'\in \tw(\Sigma): \sigma\cdot\sigma'\not\in\varphi \\
+			c\_False & \mbox{if}\ \ \sigma\not\in\varphi %\wedge \exists \sigma'\in \tw(\Sigma): \sigma\cdot\sigma'\in\varphi \\
+		\end{cases}
+	\end{array}
+	\]
+\end{definition}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\vspace{-0.5em}
+The monitor $M_{\varphi}$ for the policy $\varphi$ takes $\sigma$ as input and emits a verdict from the set $D = \{c\_True, c\_False\}$, where $c\_True$ stands for \emph{currently true} and $c\_False$ for \emph{currently false}. It reads $\sigma$ event by event, and after each event, it emits $c\_True$ if $\sigma$ satisfies $\varphi$, $c\_False$ otherwise.
+%After reading the timed word $\sigma$, if the policy is satisfied with the current observation, the monitor emits the verdict $c\_True$, otherwise, $c\_False$.
+%\vspace{0.5em}
+
+
+
+	
+\begin{example}	
+	Let's consider the policy $\varphi_{ECG}$ = $\varphi_{ECG1}$ $\cap$ $\cdots$ $\cap$ $\varphi_{ECG5}$ to monitor with a sample ECG trace. Let $(P_{onset},270)\cdot(P_{offset},350)\cdot(QRS_{onset},360)\cdot(R,420) \cdot (QRS_{offset}, 470) \cdot (T_{end}, 890)$ be the sample ECG input event sequence with the occurrence time (in ms). The RV monitor receives the trace, and each event is associated with a delay that represents the amount of time since the preceding event or the system initialization. Table \ref{tab:BPMon} displays the monitor's step-by-step behaviour.
+	
+	The first event $P_{onset}$ is received by the ECG monitor at $t=270$, and the monitor emits $C\_True$ because the policy is not violated. The event $P_{offset}$ is observed at $t=350$, and the monitor emits $C\_True$. (as P-wave duration is within a safe range and the policy is satisfied). The monitor will once again output $C\_True$ for the event $(QRS_{onset},360)$ because the PR interval is less than 200 ms, and the policy is not violated. The monitor emits $C\_True$ for the following event $(R,420)$ because the policy is satisfied. The monitor once more emits $C\_True$ because the QRS-complex duration is within a safe range, and there is no policy violation when the event $QRS_{offset}$ occurs at $t=470$. The policy is false for the event $(T_{end}, 890)$ since the QTc interval should be between 350 and 480 ms. As a result, the monitor will output the verdict $C\_False$, indicating that the currently observed trace violates the policy.	
+\end{example}	
+\ignore{
+\begin{table*}[htb]
+	\centering
+	\caption{Example- Behavior of the RV monitor for policy $\varphi_{ECG1} \wedge  \cdots \wedge \varphi_{ECG5}$}	
+	\vspace{-0.5em}
+	\scalebox{0.9}{
+		\begin{tabular}{|c|c|c|}
+			\hline			$\sigma$ & $M_\varphi(\sigma)$   \\
+			\hline
+			$(P_{onset},270)$  & \ CT  \\
+			\hline
+			$(P_{onset},270)\cdot(P_{offset},350)$  & \ CT  \\
+			\hline
+			$(P_{onset},270)\cdot(P_{offset},350)\cdot(QRS_{onset},360) $   & \ CT \\
+			\hline
+			$(P_{onset},270)\cdot(P_{offset},350)\cdot(QRS_{onset},360)\cdot(R,420)$  & \ CT \\
+			\hline
+			$(P_{onset},270)\cdot(P_{offset},350)\cdot(QRS_{onset},360)\cdot(R,420) \cdot (QRS_{offset}, 470)$  & \ CT \\
+			\hline			
+			$(P_{onset},270)\cdot(P_{offset},350)\cdot(QRS_{onset},360)\cdot(R,420) \cdot (QRS_{offset}, 470), \cdot (T_{end},890)$ & \ CF \\
+			\hline			
+		\end{tabular}%
+	}
+	\label{tab:BPMon}%
+	\vspace{-1.75em}	
+\end{table*}}
+

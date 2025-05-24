@@ -1,0 +1,55 @@
+\section{Monitoring Cardiac Abnormalities/ECG}
+In order to monitor all the policies discussed in~\autoref{sec:ecgPolicies}, we consider their intersection:  $\varphi_{ECG}$ = $\varphi_{ECG1}$ $\cap$ $\varphi_{ECG2}$ $\cdots$ $\cap$ $\varphi_{ECG5}$. Since each policy is formalized as TA, the intersection of these policies is defined as the product of TAs corresponding to each policy.
+
+Given a policy $\varphi_{ECG}$ which corresponds to the product of the TAs, we synthesize an RV monitor $M_{\varphi_{ECG}}$ using the approach mentioned in~\cite{pinisetty2017predictive,pinisetty2018security,Bauer:2011:RVL}. The RV monitor inputs the sequence of temporal events (as timed word), and after each event provides a verdict whether $\varphi_{ECG}$ is satisfied (verdict = $c\_True$) or not (verdict = $c\_False$). It raises an alert when the verdict is \emph{currently false}, indicating abnormal behaviour in ECG.
+
+\begin{example}
+	%	
+	%Let us consider policy $\varphi_{ECG}$ to be verified as the policy that we obtain by the intersection of policies $P_{ECG1}$, $\cdots$  \& $P_{ECG5}$ discussed earlier. The ECG monitor is invoked with its respective policy to verify an input event sequence (input sequence to be checked against the policy).
+	%	
+	%Let $(P_{onset},270)\cdot(P_{offset},350)\cdot(QRS_{onset},360)\cdot(R,420) \cdot (QRS_{offset}, 470) \cdot (T_{end}, 890)$ be an example of an ECG input event sequence along with the time (in ms) of occurrence. The trace is fed to the RV monitor, where each event is associated with a delay, indicating the time elapsed after the previous event or the system initialization. The step-wise behaviour of the monitor is shown in Table \ref{tab:BPMon}.
+	%	
+	%The ECG monitor receives the first event $P_{onset}$ at $t=270$ , the monitor emits $\ct$ as the policy is not violated. At $t=350$, the event $P_{offset}$ is observed, the monitor emits $\ct$ (as P-wave duration is within safe range and the policy is satisfied). For event $QRS_{onset}= 360$, the monitor will again emit verdict $\ct$ as the PR interval is within 200 ms, and the policy is not violated. For the next event $(R,420)$ , the monitor emits $\ct$ as there are no violated policies. When the event $QRS_{offset}$ comes at $t=470$, again the monitor emits $\ct$ as QRS duration is within a safe range and no violation of policies. For the event $(T_{end}, 890)$,  the policy is violated since the QTc interval should be within 350-480 ms. So, the monitor will output verdict $\cf$, indicating policy is violated by the currently observed trace.
+	%
+	Let's consider the policy $\varphi_{ECG}$ = $\varphi_{ECG1}$ $\cap$ $\cdots$ $\cap$ $\varphi_{ECG5}$ to monitor with a sample ECG trace. Let $(P_{onset},270)\cdot(P_{offset},350)\cdot(QRS_{onset},360)\cdot(R,420) \cdot (QRS_{offset}, 470) \cdot (T_{end}, 890)$ be the sample ECG input event sequence with the occurrence time (in ms). The RV monitor receives the trace, and each event is associated with a delay that represents the amount of time since the preceding event or the system initialization. Table \ref{tab:BPMon} displays the monitor's step-by-step behaviour.
+	
+	The first event $P_{onset}$ is received by the ECG monitor at $t=270$, and the monitor emits $C\_True$ because the policy is not violated. The event $P_{offset}$ is observed at $t=350$, and the monitor emits $C\_True$. (as P-wave duration is within a safe range and the policy is satisfied). The monitor will once again output $C\_True$ for the event $(QRS_{onset},360)$ because the PR interval is less than 200 ms, and the policy is not violated. The monitor emits $C\_True$ for the following event $(R,420)$ because the policy is satisfied. The monitor once more emits $C\_True$ because the QRS-complex duration is within a safe range, and there is no policy violation when the event $QRS_{offset}$ occurs at $t=470$. The policy is false for the event $(T_{end}, 890)$ since the QTc interval should be between 350 and 480 ms. As a result, the monitor will output the verdict $C\_False$, indicating that the currently observed trace violates the policy.
+\end{example}	
+%
+%\vspace{-3.5em}
+\begin{table}[htb]
+	\centering
+	\caption{\red{Example- Behavior of the RV monitor for policy $\varphi_{ECG1} \wedge  \cdots \wedge \varphi_{ECG5}$.}}	
+	\vspace{-0.5em}
+	%\scalebox{0.9}{
+		\begin{adjustbox}{width=\columnwidth}
+			
+		\begin{tabular}{|c|c|c|}
+			\hline			$\sigma$ & $M_\varphi(\sigma)$   \\
+			\hline
+			$(P_{onset},270)$  & \ct  \\
+			\hline
+			$(P_{onset},270)\cdot(P_{offset},350)$  & \ct  \\
+			\hline
+			$(P_{onset},270)\cdot(P_{offset},350)\cdot(QRS_{onset},360) $   & \ct \\
+			\hline
+			$(P_{onset},270)\cdot(P_{offset},350)\cdot(QRS_{onset},360)\cdot(R,420)$  & \ct \\
+			\hline
+			$(P_{onset},270)\cdot(P_{offset},350)\cdot(QRS_{onset},360)\cdot(R,420) \cdot (QRS_{offset}, 470)$  & \ct \\
+			\hline			
+			$(P_{onset},270)\cdot(P_{offset},350)\cdot(QRS_{onset},360)\cdot(R,420) \cdot (QRS_{offset}, 470), \cdot (T_{end},890)$ & \cf \\
+			\hline			
+		\end{tabular}%
+		%content...
+		\end{adjustbox}
+	%}
+	\label{tab:BPMon}%
+	\vspace{-1.75em}	
+\end{table}%
+%\vspace{-0.5em}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\ignore{
+	\begin{remark}
+		We assume the implicit resetting of the runtime monitor after every ECG cycle. As we are proposing continuous monitoring of ECG cycles to detect any cardiac abnormalities, when an ECG cycle violates a policy, the runtime monitor does not stop monitoring by waiting at the unsafe location of the TA. 
+	\end{remark}
+}

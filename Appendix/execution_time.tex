@@ -1,0 +1,60 @@
+\section{Execution time of the RV monitor}
+
+In the previous section, we discussed different conventional temporal
+aspects of an ECG signal. In this section, we discuss the cardiac problems caused by temporal feature deviations and the timed policies
+considered to monitor and classify ECG.
+
+As previously stated, a typical ECG signal has various temporal
+aspects, including PR, QT, RR, and P-wave intervals, as well as
+conventional ranges. Any variations from these normal electrical
+patterns can suggest a variety of heart conditions. Different ECG
+waves and intervals, their usual ranges, and abnormalities in the heart when these properties deviate from their safe ranges are presented in \ref{table:abnormal}
+
+\begin{table*}[]
+	\centering
+	\caption{ECG features and heart abnormalities}	
+	\vspace{-0.5em}
+	\resizebox{0.9\linewidth}{!}
+	{	
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			
+			\begin{tabular}[c]{@{}c@{}}ECG waves\\  and\\ intervals\end{tabular} &
+			\begin{tabular}[c]{@{}c@{}}Normal\\  Range\end{tabular} &
+			\begin{tabular}[c]{@{}c@{}}Abnormal\\ duration\end{tabular} & Heart Abnormality 
+			& References \\ \hline
+			\multirow{2}{*}{PR interval}                                         &
+			\multirow{2}{*}{0.12-0.20s}                             & < 0.12 s              
+			& Pre-excitation syndromes                 
+			& \cite{hampton2019ecg}         \\ \cline{3-5} 
+			&                                                         & > 0.2 s           
+			& First-degree AV block                
+			& \cite{hampton2019ecg}          \\ \hline
+			\multirow{2}{*}{QRS complex}                                         &
+			\multirow{2}{*}{0.08-0.12 s}                            & 0.1 - 0.12 s          
+			& Incomplete bundle branch block         
+			& \cite{hampton2019ecg}          \\ \cline{3-5} 
+			&                                                         & > 0.12 s          
+			& Complete bundle branch block         
+			& \cite{hampton2019ecg}         \\ \hline
+			\multirow{2}{*}{QT interval}                                         &
+			\multirow{2}{*}{350-480 ms}                             & > 480 ms              
+			& Abnormal ventricular repolarization                 
+			& \cite{hampton2019ecg}        \\ \cline{3-5} 
+			&                                                         & < 390 ms          
+			& Abnormal ventricular depolarization or
+			repolarization & \cite{hampton2019ecg}         \\ \hline
+			RR interval                                                          & 0.6-1.2
+			s                                               & variable                      
+			& Irregular heart rhythm                           
+			& \cite{hampton2019ecg}        \\ \hline
+			
+			P-wave                                                               & $\leq$
+			0.12 s                                        & > 0.12 s                               
+			& atrial enlargement                                                 
+			& \cite{hampton2019ecg}         \\ \hline
+		\end{tabular}
+	}
+	\vspace{-1em}
+	\label{table:abnormal}
+\end{table*}

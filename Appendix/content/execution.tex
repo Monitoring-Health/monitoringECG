@@ -1,0 +1,55 @@
+\section{Execution time}
+
+\textit{Execution time:} Additionally, we investigated how long the runtime monitor took to process a cycle of an ECG. \footnote {Since the policies are independent, the RV monitors for each policy may be executed in parallel. In this experiment, we have explored the sequential execution of the RV monitors for each policy. In this case, dividing the total time indicated above by the number of monitors would give the overall execution time.} The average execution times for the RV monitor and the ECG processing module across several runs are shown in Table \ref{tab:performance} (approximately 1000 runs). For an ECG cycle, it takes the ECG processing module about 207.80 ms to find desired ECG events. The execution time for the combined policy is around 321 ms for an ECG cycle trace. We can see from the Table \ref{tab:performance} that the ECG processing module and RV monitor module take roughly 528.80 ms to complete one ECG cycle. Since an ECG cycle lasts roughly 1000-1200 ms, the RV framework is incredibly quick to report any ECG irregularities and identify any heart issues.
+\vspace{-0.5em}
+\begin{table}[!htb]
+	\begin{minipage}{1\linewidth}
+		\centering
+		\caption{Accuracy of the RV monitor}
+		\vspace{-0.5em}
+		\resizebox{1\columnwidth}{!}
+		{
+			\begin{tabular}{|l|l|c|c|}
+				\hline
+				\multicolumn{1}{|c|}{Database} & \multicolumn{1}{c|}{ECG Record} & Status              & RV accuracy/cycle  \\ \hline
+				PTB-XL                         & 03-3332                     & conduction issues   & 100\%   \\ \hline
+				PTB-XL                         & 04-4546                     & bundle branch block & 70\%     \\ \hline
+				PTB-XL                         & 04-4546                     & atrial enlargement  & 70\%     \\ \hline
+				PTB-XL                        & 04-4469                     & sinus arrhythmia          & 100\%   \\ \hline
+				PTB-XL                        & 04-4387                     & AV-block         & 100\%    \\ \hline
+				PTB-XL                        & 04-06150                     & myocardial infarction         & 100\%    \\ \hline
+			\end{tabular}
+		}
+		\label{table:accuracy}
+	\end{minipage}
+	%\vspace{-2em}
+\end{table}
+\vspace{-1.5em}
+\begin{table}[!htb]
+	\begin{minipage}{1\linewidth}
+		\centering
+		\caption{Execution time of the RV monitor}
+		\vspace{-0.5em}
+		\resizebox{\columnwidth}{!}
+		{
+			\begin{tabular}{|c|c|c|c|c|}
+				\hline
+				Policy &
+				
+				\begin{tabular}[c]{@{}c@{}}No. \\ of\\ ECG \\ cycles\end{tabular} &
+				\begin{tabular}[c]{@{}c@{}}ECG\\  processing\\  Time (ms)\end{tabular} &
+				\begin{tabular}[c]{@{}c@{}}ECG \\ RV monitor\\  Time (ms)\end{tabular}  &
+				\begin{tabular}[c]{@{}c@{}} \\ Total \\  Time (ms)\end{tabular} 
+				\\ \hline
+				$P_{ECG1}$   & 1 & 207.80 & 15.175 & 222.255   \\ \hline
+				$P_{ECG1}\& P_{ECG2}$   & 1 & 207.80 & 52.175 & 259.255   \\ \hline
+				
+				$P_{ECG1} \cdots  P_{ECG3}$   & 1 & 207.80 & 321 & 528.80   \\ \hline	
+				$P_{ECG1} \cdots  P_{ECG4}$   & 1 & 207.80 & 321 & 528.80   \\ \hline
+				$P_{ECG1} \cdots  P_{ECG5}$   & 1 & 207.80 & 321 & 528.80   \\ \hline
+			\end{tabular}%
+		}
+		\label{tab:performance}
+	\end{minipage}\hfill
+	\vspace{-0.5em}
+\end{table}

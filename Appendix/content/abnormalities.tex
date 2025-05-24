@@ -1,0 +1,357 @@
+%\section{Abstract}
+%hypertension paper~\cite{DBLP:journals/esl/PandaAPR24}.
+%\\
+
+
+\section{CAPTURING HEART ABNORMALITIES AS TIMED AUTOMATA}
+
+In the previous section, we discussed different conventional temporal
+aspects of an ECG signal. In this section, we discuss the cardiac problems caused by temporal feature deviations and the timed policies
+considered to monitor and classify ECG.
+As previously stated, a typical ECG signal has various temporal
+aspects, including PR, QT, RR, and P-wave intervals, as well as
+conventional ranges. Any variations from these normal electrical
+patterns can suggest a variety of heart conditions. Different ECG
+waves and intervals, their usual ranges, and abnormalities in the heart
+
+when these properties deviate from their safe ranges are presented in
+Table \ref{table:abnormal}
+
+\subsection{Capturing cardiac complications due to
+	extended PR interval as TA}
+	
+Regular PR intervals average between 0.12 and 0.20 seconds. A
+prolonged PR interval showing delayed transmission of the SA node
+impulse to the ventricles is diagnostic of first-degree AV block. Firstdegree heart block is a clinically insignificant finding on its own;
+however, heart diseases such as acute rheumatic carditis, an overdose
+of digoxin, or an electrolyte imbalance may arise because of it. A
+Harvard study found that people with PR intervals longer than 200
+ms had an increased risk of atrial fibrillation, pacemaker insertion,
+and premature death by roughly a factor of 1.5. Wolff-ParkinsonWhite and Lown-Ganong-Levine syndromes are two conditions in
+which a short PR interval is seen because the heart is able to bypass
+the AV node delay. The TA in Fig. \ref{fig:TA1} captures the extended PR
+interval. The RV monitor raises the alarm whenever the standard PR
+interval is violated, indicating the possibility of cardiac abnormalities
+due to the prolonged PR interval.
+
+
+
+\begin{table*}[]
+	\centering
+	\caption{ECG features and heart abnormalities}	
+	\vspace{-0.5em}
+	\resizebox{0.9\linewidth}{!}
+	{	
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			
+			\begin{tabular}[c]{@{}c@{}}ECG waves\\  and\\ intervals\end{tabular} &
+			\begin{tabular}[c]{@{}c@{}}Normal\\  Range\end{tabular} &
+			\begin{tabular}[c]{@{}c@{}}Abnormal\\ duration\end{tabular} & Heart Abnormality 
+			& References \\ \hline
+			\multirow{2}{*}{PR interval}                                         &
+			\multirow{2}{*}{0.12-0.20s}                             & $\le$ 0.12 s              
+			& Pre-excitation syndromes                 
+			& \cite{hampton2019ecg}         \\ \cline{3-5} 
+			&                                                         & $\ge$ 0.2 s           
+			& First-degree AV block                
+			& \cite{hampton2019ecg}          \\ \hline
+			\multirow{2}{*}{QRS complex}                                         &
+			\multirow{2}{*}{0.08-0.12 s}                            & 0.1 - 0.12 s          
+			& Incomplete bundle branch block         
+			& \cite{hampton2019ecg}          \\ \cline{3-5} 
+			&                                                         & $\ge$ 0.12 s          
+			& Complete bundle branch block         
+			& \cite{hampton2019ecg}         \\ \hline
+			\multirow{2}{*}{QT interval}                                         &
+			\multirow{2}{*}{350-480 ms}                             & $\ge$ 480 ms              
+			& Abnormal ventricular repolarization                 
+			& \cite{hampton2019ecg}        \\ \cline{3-5} 
+			&                                                         & $\le$ 390 ms          
+			& Abnormal ventricular depolarization or
+			repolarization & \cite{hampton2019ecg}         \\ \hline
+			RR interval                                                          & 0.6-1.2
+			s                                               & variable                      
+			& Irregular heart rhythm                           
+			& \cite{hampton2019ecg}        \\ \hline
+			
+			P-wave                                                               & $\leq$
+			0.12 s                                        & $\ge$ 0.12 s                               
+			& atrial enlargement                                                 
+			& \cite{hampton2019ecg}         \\ \hline
+		\end{tabular}
+	}
+	\vspace{-1em}
+	\label{table:abnormal}
+\end{table*}
+
+
+\begin{figure}
+	\begin{adjustbox}{width=\linewidth}
+		
+		\begin{tikzpicture}[->,shorten >=1pt,auto,node distance=2.5cm,semithick,initial where=left]
+			
+			\tikzstyle{every node}=[font=\small]
+			
+			\tikzstyle{good state}=[circle,thick,draw=blue!75,fill=blue!20,minimum size=5mm]
+			\tikzstyle{bad state}=[circle,thick,draw=red!75,fill=red!20,minimum size=3mm,accepting]
+			\tikzstyle{dead state}=[rectangle,thick,draw=red!75,fill=red!20,minimum size=5mm]
+			
+			\node[initial,good state] (N0) {$S_0$};
+			\node[good state]         (N1) [right=4.5 of N0] {$S_1$}; %[right of=N0] {$l_1$};
+			\node[bad state]        (H) [below=0.75 of N1] {$S_2$};
+			\node[bad state]        (H1) [below=0.75 of N0] {$S_3$};
+			
+			\path (N0) edge  [bend left=20] node [align=center]  {$ P_{onset}, x:=0 $ }( N1)
+			
+			%edge [loop above] node [align=center] {$ B_{G_1} $: $ b_1=1 $\\$C_{G_1}$: $ c_1=1 $}(N0)  
+			edge [loop above] node [align=center] {$ \Sigma \setminus P_{onset} $}(N0)  
+			%(H)edge [bend left=20] node [align=center] {$ R, x:=0 $ }(N1)          
+			(N1)edge [bend left=0] node [align=center, pos=0.5, below] {$ S_{offset}, x\leq200 $ and $ x\geq120 $} (N0)
+			(H1)edge node [align=center] {$ S_{offset}, x\leq200 $\\ and $ x\geq120 $} (N0)
+			%(N1) edge  [loop right] node {$ A_{G_1} $} (N1)
+			(N1)edge node [align=center] {$ S_{offset}, x>200 $  \\or $ x<120 $} (H)
+			edge [loop above] node [align=center] {$ \Sigma \setminus S_{offset} $}(N1)
+			%edge [loop above] node [align=center] {$ \Sigma \setminus on $}(H1)
+			(H) edge [loop right] node {$ \Sigma \setminus P_{onset} $} (H)
+			(H) edge  [bend left=20] node [align=center]  {$ P_{onset}, x:=0 $ }( H1)
+			(H1)edge  [bend left=0] node [align=center, pos=0.5, above] {$ S_{offset}, x>200 $  or $ x<120 $} (H)
+			edge [loop left] node [align=center] {$ \Sigma \setminus S_{offset} $}(H1);
+			
+		\end{tikzpicture}
+		%content...
+	\end{adjustbox}
+	\caption{\red{Policy $\varphi_{ECG1}$ specified as TA.}}
+	%\caption {figure} {VDTA specifying the constraint: ``\textit{Peer A can undertake a research project only after it has been approved by peer \{B, C\}}".}
+	\label{fig:TA1}
+\end{figure}
+
+
+\subsection{ Capturing wide QRS complex as TA}
+
+In general, the QRS-complex ranges between 0.08 and 0.10 seconds. When the time span is between 0.10 and 0.12 seconds, we
+classify it as intermediate or prolonged QRS-complex. This may
+indicate a left anterior or posterior fascicular block, or an incomplete right or left bundle branch block. When the QRS-complex
+lasts longer than 0.12 seconds, medical attention is warranted. An
+extended QRS duration is a symptom of a variety of heart rhythm
+disorders, such as right bundle branch block, left bundle branch
+block, non-specific intraventricular conduction delay, and ventricular arrhythmias such as ventricular tachycardia. Right-sided heart
+problems are often indicated by a phenomenon known as right bundle branch block (RBBB). However, the left bundle branch block
+(LBBB) is always associated with heart disease, most frequently
+in the left ventricle. The prolonged QRS duration is captured by
+the TA in Fig. \ref{TA2}. Every time the expected duration is exceeded, the
+RV monitor sounds the alarm, warning of the potential for cardiac
+problems caused by the prolonged QRS interval.
+
+\begin{figure}
+	\begin{adjustbox}{width=\linewidth}
+		
+		\begin{tikzpicture}[->,shorten >=1pt,auto,node distance=2.5cm,semithick,initial where=left]
+			
+			\tikzstyle{every node}=[font=\small]
+			
+			\tikzstyle{good state}=[circle,thick,draw=blue!75,fill=blue!20,minimum size=5mm]
+			\tikzstyle{bad state}=[circle,thick,draw=red!75,fill=red!20,minimum size=3mm,accepting]
+			\tikzstyle{dead state}=[rectangle,thick,draw=red!75,fill=red!20,minimum size=5mm]
+			
+			\node[initial,good state] (N0) {$S_0$};
+			\node[good state]         (N1) [right=4.5 of N0] {$S_1$}; %[right of=N0] {$l_1$};
+			\node[bad state]        (H) [below=0.75 of N1] {$S_2$};
+			\node[bad state]        (H1) [below=0.75 of N0] {$S_3$};
+			
+			\path (N0) edge  [bend left=20] node [align=center]  {$ Q_{onset}, x:=0 $ }( N1)
+			
+			%edge [loop above] node [align=center] {$ B_{G_1} $: $ b_1=1 $\\$C_{G_1}$: $ c_1=1 $}(N0)  
+			edge [loop above] node [align=center] {$ \Sigma \setminus Q_{onset} $}(N0)  
+			%(H)edge [bend left=20] node [align=center] {$ R, x:=0 $ }(N1)          
+			(N1)edge [bend left=0] node [align=center, pos=0.5, below] {$ S_{offset}, x\leq120 $ and $ x\geq80 $} (N0)
+			(H1)edge node [align=center] {$ S_{offset}, x\leq120 $\\ and $ x\geq80 $} (N0)
+			%(N1) edge  [loop right] node {$ A_{G_1} $} (N1)
+			(N1)edge node [align=center] {$ S_{offset}, x>120 $  \\or $ x<80 $} (H)
+			edge [loop above] node [align=center] {$ \Sigma \setminus S_{offset} $}(N1)
+			%edge [loop above] node [align=center] {$ \Sigma \setminus on $}(H1)
+			(H) edge [loop right] node {$ \Sigma \setminus Q_{onset} $} (H)
+			(H) edge  [bend left=20] node [align=center]  {$ Q_{onset}, x:=0 $ }( H1)
+			(H1)edge  [bend left=0] node [align=center, pos=0.5, above] {$ S_{offset}, x>120 $  or $ x<80 $} (H)
+			edge [loop left] node [align=center] {$ \Sigma \setminus S_{offset} $}(H1);
+			
+		\end{tikzpicture}
+		%content...
+	\end{adjustbox}
+	\caption{\red{Policy $\varphi_{ECG1}$ specified as TA.}}
+	%\caption {figure} {VDTA specifying the constraint: ``\textit{Peer A can undertake a research project only after it has been approved by peer \{B, C\}}".}
+	\label{fig:TA2}
+\end{figure}
+
+\subsection{Capturing prolonged QT interval as TA}
+
+The QTc interval should be between 350 and 480 milliseconds. It is
+prolonged in people with certain electrolyte disorders, and it is also
+prolonged by some drugs. Ventricular tachycardia can be caused
+by a prolonged QT interval (more than 480 ms). Long QT Interval
+Syndromes occur when the QTc is larger than 480 ms (LQTS). This
+condition has significant clinical implications because it typically suggests a higher risk of malignant ventricular arrhythmia, syncope,
+and sudden death. Short QTc syndrome occurs when QTc is less than
+0.35 s and can result in hypercalcemia and malignant arrhythmia.
+The elongated QT interval is depicted by the TA in Fig. \ref{TA3}. When
+the typical QT interval is exceeded, the RV monitor sounds an alert
+because this may be a sign of cardiac problems.
+
+\begin{figure}
+	\begin{adjustbox}{width=\linewidth}
+		
+		\begin{tikzpicture}[->,shorten >=1pt,auto,node distance=2.5cm,semithick,initial where=left]
+			
+			\tikzstyle{every node}=[font=\small]
+			
+			\tikzstyle{good state}=[circle,thick,draw=blue!75,fill=blue!20,minimum size=5mm]
+			\tikzstyle{bad state}=[circle,thick,draw=red!75,fill=red!20,minimum size=3mm,accepting]
+			\tikzstyle{dead state}=[rectangle,thick,draw=red!75,fill=red!20,minimum size=5mm]
+			
+			\node[initial,good state] (N0) {$S_0$};
+			\node[good state]         (N1) [right=4.5 of N0] {$S_1$}; %[right of=N0] {$l_1$};
+			\node[bad state]        (H) [below=0.75 of N1] {$S_2$};
+			\node[bad state]        (H1) [below=0.75 of N0] {$S_3$};
+			
+			\path (N0) edge  [bend left=20] node [align=center]  {$ P_{onset}, x:=0 $ }( N1)
+			
+			%edge [loop above] node [align=center] {$ B_{G_1} $: $ b_1=1 $\\$C_{G_1}$: $ c_1=1 $}(N0)  
+			edge [loop above] node [align=center] {$ \Sigma \setminus P_{onset} $}(N0)  
+			%(H)edge [bend left=20] node [align=center] {$ R, x:=0 $ }(N1)          
+			(N1)edge [bend left=0] node [align=center, pos=0.5, below] {$ S_{offset}, x\leq200 $ and $ x\geq120 $} (N0)
+			(H1)edge node [align=center] {$ S_{offset}, x\leq200 $\\ and $ x\geq120 $} (N0)
+			%(N1) edge  [loop right] node {$ A_{G_1} $} (N1)
+			(N1)edge node [align=center] {$ S_{offset}, x>200 $  \\or $ x<120 $} (H)
+			edge [loop above] node [align=center] {$ \Sigma \setminus S_{offset} $}(N1)
+			%edge [loop above] node [align=center] {$ \Sigma \setminus on $}(H1)
+			(H) edge [loop right] node {$ \Sigma \setminus P_{onset} $} (H)
+			(H) edge  [bend left=20] node [align=center]  {$ P_{onset}, x:=0 $ }( H1)
+			(H1)edge  [bend left=0] node [align=center, pos=0.5, above] {$ S_{offset}, x>200 $  or $ x<120 $} (H)
+			edge [loop left] node [align=center] {$ \Sigma \setminus S_{offset} $}(H1);
+			
+		\end{tikzpicture}
+		%content...
+	\end{adjustbox}
+	\caption{\red{Policy $\varphi_{ECG1}$ specified as TA.}}
+	%\caption {figure} {VDTA specifying the constraint: ``\textit{Peer A can undertake a research project only after it has been approved by peer \{B, C\}}".}
+	\label{fig:TA3}
+\end{figure}
+
+
+\subsection{Capturing wide P-wave as TA}
+
+In addition, when the P-wave duration is longer than normal, it
+usually indicates that one or both atria are enlarged (hypertrophied).
+P waves can broaden or amplify as a result of atrial enlargements.
+The shape of the P waves can be altered by ectopic atrial beats.
+An absence of P waves is a characteristic of many abnormal heart
+rhythms, such as atrial fibrillation and junctional arrhythmias. Short
+RP can occur when the P waves are obscured by the end of the QRS
+complex, as can happen in atrioventricular reentrant tachycardia.
+The wide P-wave interval is depicted by the TA in the Fig. \ref{TA4}. When
+the specified duration is exceeded, the RV monitor will sound the
+alarm to alert the user to the fact that there is a potential for cardiac
+irregularities as a result of the longer P-wave interval.
+
+\begin{figure}
+	\begin{adjustbox}{width=\linewidth}
+		
+		\begin{tikzpicture}[->,shorten >=1pt,auto,node distance=2.5cm,semithick,initial where=left]
+			
+			\tikzstyle{every node}=[font=\small]
+			
+			\tikzstyle{good state}=[circle,thick,draw=blue!75,fill=blue!20,minimum size=5mm]
+			\tikzstyle{bad state}=[circle,thick,draw=red!75,fill=red!20,minimum size=3mm,accepting]
+			\tikzstyle{dead state}=[rectangle,thick,draw=red!75,fill=red!20,minimum size=5mm]
+			
+			\node[initial,good state] (N0) {$S_0$};
+			\node[good state]         (N1) [right=4.5 of N0] {$S_1$}; %[right of=N0] {$l_1$};
+			\node[bad state]        (H) [below=0.75 of N1] {$S_2$};
+			\node[bad state]        (H1) [below=0.75 of N0] {$S_3$};
+			
+			\path (N0) edge  [bend left=20] node [align=center]  {$ P_{onset}, x:=0 $ }( N1)
+			
+			%edge [loop above] node [align=center] {$ B_{G_1} $: $ b_1=1 $\\$C_{G_1}$: $ c_1=1 $}(N0)  
+			edge [loop above] node [align=center] {$ \Sigma \setminus P_{onset} $}(N0)  
+			%(H)edge [bend left=20] node [align=center] {$ R, x:=0 $ }(N1)          
+			(N1)edge [bend left=0] node [align=center, pos=0.5, below] {$ S_{offset}, x\leq200 $ and $ x\geq120 $} (N0)
+			(H1)edge node [align=center] {$ S_{offset}, x\leq200 $\\ and $ x\geq120 $} (N0)
+			%(N1) edge  [loop right] node {$ A_{G_1} $} (N1)
+			(N1)edge node [align=center] {$ S_{offset}, x>200 $  \\or $ x<120 $} (H)
+			edge [loop above] node [align=center] {$ \Sigma \setminus S_{offset} $}(N1)
+			%edge [loop above] node [align=center] {$ \Sigma \setminus on $}(H1)
+			(H) edge [loop right] node {$ \Sigma \setminus P_{onset} $} (H)
+			(H) edge  [bend left=20] node [align=center]  {$ P_{onset}, x:=0 $ }( H1)
+			(H1)edge  [bend left=0] node [align=center, pos=0.5, above] {$ S_{offset}, x>200 $  or $ x<120 $} (H)
+			edge [loop left] node [align=center] {$ \Sigma \setminus S_{offset} $}(H1);
+			
+		\end{tikzpicture}
+		%content...
+	\end{adjustbox}
+	\caption{\red{Policy $\varphi_{ECG1}$ specified as TA.}}
+	%\caption {figure} {VDTA specifying the constraint: ``\textit{Peer A can undertake a research project only after it has been approved by peer \{B, C\}}".}
+	\label{fig:TA4}
+\end{figure}
+
+\subsection{Capturing variation in heartbeat as TA}
+
+Variations in the RR interval have been extensively researched
+in the context of irregular cardiac rhythm. The fluctuations in the
+time intervals between individual heartbeats (R-peaks) are measured
+by heart rate variability (HRV). The HRV can provide insights into
+autonomic neural function as well as sympathetic-parasympathetic
+autonomic balance and cardiovascular health ([13]). The extended
+RR interval is captured by the TA in Fig. \ref{TA5}. Every time the normal
+RR interval is violated, the RV monitor sounds the alarm, potentially
+alerting the patient to the likelihood of cardiac problems caused by
+the prolonged RR interval.
+
+
+\begin{figure}
+	\begin{adjustbox}{width=\linewidth}
+		
+		\begin{tikzpicture}[->,shorten >=1pt,auto,node distance=2.5cm,semithick,initial where=left]
+			
+			\tikzstyle{every node}=[font=\small]
+			
+			\tikzstyle{good state}=[circle,thick,draw=blue!75,fill=blue!20,minimum size=5mm]
+			\tikzstyle{bad state}=[circle,thick,draw=red!75,fill=red!20,minimum size=3mm,accepting]
+			\tikzstyle{dead state}=[rectangle,thick,draw=red!75,fill=red!20,minimum size=5mm]
+			
+			\node[initial,good state] (N0) {$S_0$};
+			\node[good state]         (N1) [right=4.5 of N0] {$S_1$}; %[right of=N0] {$l_1$};
+			\node[bad state]        (H) [below=0.75 of N1] {$S_2$};
+			\node[bad state]        (H1) [below=0.75 of N0] {$S_3$};
+			
+			\path (N0) edge  [bend left=20] node [align=center]  {$ P_{onset}, x:=0 $ }( N1)
+			
+			%edge [loop above] node [align=center] {$ B_{G_1} $: $ b_1=1 $\\$C_{G_1}$: $ c_1=1 $}(N0)  
+			edge [loop above] node [align=center] {$ \Sigma \setminus P_{onset} $}(N0)  
+			%(H)edge [bend left=20] node [align=center] {$ R, x:=0 $ }(N1)          
+			(N1)edge [bend left=0] node [align=center, pos=0.5, below] {$ S_{offset}, x\leq200 $ and $ x\geq120 $} (N0)
+			(H1)edge node [align=center] {$ S_{offset}, x\leq200 $\\ and $ x\geq120 $} (N0)
+			%(N1) edge  [loop right] node {$ A_{G_1} $} (N1)
+			(N1)edge node [align=center] {$ S_{offset}, x>200 $  \\or $ x<120 $} (H)
+			edge [loop above] node [align=center] {$ \Sigma \setminus S_{offset} $}(N1)
+			%edge [loop above] node [align=center] {$ \Sigma \setminus on $}(H1)
+			(H) edge [loop right] node {$ \Sigma \setminus P_{onset} $} (H)
+			(H) edge  [bend left=20] node [align=center]  {$ P_{onset}, x:=0 $ }( H1)
+			(H1)edge  [bend left=0] node [align=center, pos=0.5, above] {$ S_{offset}, x>200 $  or $ x<120 $} (H)
+			edge [loop left] node [align=center] {$ \Sigma \setminus S_{offset} $}(H1);
+			
+		\end{tikzpicture}
+		%content...
+	\end{adjustbox}
+	\caption{\red{Policy $\varphi_{ECG1}$ specified as TA.}}
+	%\caption {figure} {VDTA specifying the constraint: ``\textit{Peer A can undertake a research project only after it has been approved by peer \{B, C\}}".}
+	\label{fig:TA5}
+\end{figure}
+
+
+
+
+
+
+
+
+
